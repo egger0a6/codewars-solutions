@@ -75,31 +75,6 @@ function listPosition(word) {
   return calcIndex();
 }
 
-console.log(listPosition("ARCTIC"))
-console.log(listPosition("QUESTION"))
-console.log(listPosition("BOOKKEEPER"))
-console.log(listPosition("BUBBLE"))
-
-
-// =============================================================================
-
-
-// Factorial division. ex: (6! / 4! = 30) === (factoDiv(6, 4) = 30)
-let
-withAs = (obj, cb) => cb(obj), // withAs returns cb function with input of what obj returns
-
-mul = arr => arr.reduce((a, b) => b * a),
-
-makeList = (start, stop) =>
-  start > stop ? [] : [
-    start, ...makeList(
-      start + 1, stop
-    )
-  ],
-
-factoDiv = (a, b) => withAs(
-  mul(makeList(
-    Math.min(a, b) + 1,
-    Math.max(a, b)
-  )), res => a > b ? res : 1 / res
-)
+// console.log(listPosition("QUESTION"))
+// console.log(listPosition("BOOKKEEPER"))
+// console.log(listPosition("BUBBLE"))
