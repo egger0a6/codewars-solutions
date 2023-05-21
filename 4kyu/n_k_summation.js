@@ -33,18 +33,21 @@ function calcBernoulliNum(n) {
   return arr[0];
 }
 
-function gcd(a, b) {
-  return b ? gcd(b, a % b) : a;
+function calcGcd(a, b) {
+  return b ? calcGcd(b, a % b) : a;
 }
 
 function calcBernoulliNumFrac(n) {
   let arr = [];
   for (let i = 0; i < n + 1; i++) {
+    // index 0 = numerator, 1 = denominator
     arr[i] = [BigInt(1), BigInt(i + 1)];
+    let diff;
     for (let j = i; j > 0; j--) {
-      arr[j-1] = j * (arr[j-1] - arr[j])
-      arr[j-1] = j * (arr[j-1].map((el, idx) => el - arr[j][idx]))
+      diff = subFrac(arr[j-1], arr[j]);
+      arr[j-1] = [BigInt(j) * diff[0], diff[1]];
     }
+    console.log(arr)
   }
   console.log(arr)
   return arr[0];
@@ -61,5 +64,14 @@ function binomialCoeff(n, k) {
   return coeff;
 }
 
+function subFrac(fOne, fTwo) {
+  let diff = [];
+  let gcd = calcGcd(fOne[1], fTwo[1]);
+  // frac1 + (-)frac2
+  diff.push((fOne[0] * fTwo[1] / gcd) + ((BigInt(-1)*fTwo[0]) * fOne[1] / gcd));
+  diff.push(fOne[1] * fTwo[1] / gcd);
+  return diff;
+}
+
 console.log(calcBernoulliNum(1))
-//console.log(calcBernoulliNumFrac(5))
+console.log(calcBernoulliNumFrac(5))
