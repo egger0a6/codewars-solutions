@@ -3,34 +3,52 @@
 // method using Faulhaber's formula https://www.wikiwand.com/en/Faulhaber%27s_formula
 
 var equation = function (exp) {
-  let coeff = 1 / (exp + 1),
+  let coeff = [1, BigInt(exp + 1)], // 1 / (p + 1)
       expanedFormula = "",
       binomCoeff, 
       bernNum,
       expon;
 
-  let currExpr = "";
+  let currExpr,
+      currCoeff,
+      num,
+      den;
   for (let k = 0; k < exp+1; k++) {
-    bernNum = calcBernoulliNum(k);
-    if (!bernNum) continue;
-    binomCoeff = binomCoeff(exp+1, k);
+    currExpr = "";
+    bernNum = reduceFrac(calcBernoulliNumFrac(k));
+    console.log("Bernoulli number: " + bernNum)
+    if (!bernNum[0]) continue;
+    binomCoeff = [BigInt(binomialCoeff(exp+1, k)), coeff[1]];
+    console.log("Binomial coeff: " + binomCoeff)
+    currCoeff = reduceFrac([binomCoeff[0] * bernNum[0], binomCoeff[1] * bernNum[1]]);
+    console.log("Current coeff: " + currCoeff)
+    num = currCoeff[0];
+    den = currCoeff[1];
     expon = exp - k + 1;
-    currExpr += 
-      ``
-  }
-}
-
-function calcBernoulliNum(n) {
-  let arr = [];
-  for (let i = 0; i < n + 1; i++) {
-    arr[i] = 1 / (i + 1);
-    for (let j = i; j > 0; j--) {
-      console.log(arr)
-      arr[j-1] = j * (arr[j-1] - arr[j])
+    if (expanedFormula) {
+      currExpr += 
+      `${(num < 0 || den < 0) ? " - " : " + "}` +
+      `${num}/${den}`.replace("-", "") +
+      `n${expon > 1 ? "^"+expon : ""}`;
     }
+    else {
+      if (den > 1) {
+        currExpr += 
+        `${(num < 0 || den < 0) ? " - " : ""}` +
+        `${num}/${den}`.replace("-", "") +
+        `n${expon > 1 ? "^"+expon : ""}`;
+      }
+      else {
+        currExpr += 
+        `${(num < 0 || den < 0) ? " - " : ""}` +
+        `n${expon > 1 ? "^"+expon : ""}`;
+      }
+    }
+    console.log("currExpr: " + currExpr)
+    expanedFormula += currExpr;
   }
-  console.log(arr)
-  return arr[0];
+  console.log()
+  return expanedFormula;
 }
 
 function calcGcd(a, b) {
@@ -47,9 +65,7 @@ function calcBernoulliNumFrac(n) {
       diff = subFrac(arr[j-1], arr[j]);
       arr[j-1] = [BigInt(j) * diff[0], diff[1]];
     }
-    console.log(arr)
   }
-  console.log(arr)
   return arr[0];
 }
 
@@ -64,6 +80,7 @@ function binomialCoeff(n, k) {
   return coeff;
 }
 
+// subtract two fractions
 function subFrac(fOne, fTwo) {
   let diff = [];
   let gcd = calcGcd(fOne[1], fTwo[1]);
@@ -73,5 +90,26 @@ function subFrac(fOne, fTwo) {
   return diff;
 }
 
-console.log(calcBernoulliNum(1))
-console.log(calcBernoulliNumFrac(5))
+// reduce a fraction by dividing numerator and denominator by thier GCD
+function reduceFrac(frac) {
+  let gcd = calcGcd(frac[0], frac[1]);
+  return [frac[0] / gcd, frac[1]/ gcd];
+}
+
+// function calcBernoulliNum(n) {
+//   let arr = [];
+//   for (let i = 0; i < n + 1; i++) {
+//     arr[i] = 1 / (i + 1);
+//     for (let j = i; j > 0; j--) {
+//       console.log(arr)
+//       arr[j-1] = j * (arr[j-1] - arr[j])
+//     }
+//   }
+//   console.log(arr)
+//   return arr[0];
+// }
+
+console.log(reduceFrac(calcBernoulliNumFrac(4)))
+console.log(equation(0))
+console.log(equation(1))
+console.log(equation(4))
