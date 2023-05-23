@@ -4,7 +4,7 @@
 
 var equation = function (exp) {
   let coeff = [1, BigInt(exp + 1)], // 1 / (p + 1)
-      expanedFormula = "",
+      expandedFormula = "",
       binomCoeff, 
       bernNum,
       expon;
@@ -16,19 +16,16 @@ var equation = function (exp) {
   for (let k = 0; k < exp+1; k++) {
     currExpr = "";
     bernNum = reduceFrac(calcBernoulliNumFrac(k));
-    console.log("Bernoulli number: " + bernNum)
     if (!bernNum[0]) continue;
     binomCoeff = [BigInt(binomialCoeff(exp+1, k)), coeff[1]];
-    console.log("Binomial coeff: " + binomCoeff)
     currCoeff = reduceFrac([binomCoeff[0] * bernNum[0], binomCoeff[1] * bernNum[1]]);
-    console.log("Current coeff: " + currCoeff)
     num = currCoeff[0];
     den = currCoeff[1];
     expon = exp - k + 1;
-    if (expanedFormula) {
+    if (expandedFormula) {
       currExpr += 
       `${(num < 0 || den < 0) ? " - " : " + "}` +
-      `${num}/${den}`.replace("-", "") +
+      `${(den === 1n) ? num : num + "/" + den}`.replace("-", "") +
       `n${expon > 1 ? "^"+expon : ""}`;
     }
     else {
@@ -44,12 +41,10 @@ var equation = function (exp) {
         `n${expon > 1 ? "^"+expon : ""}`;
       }
     }
-    console.log("currExpr: " + currExpr)
-    expanedFormula += currExpr;
+    expandedFormula += currExpr;
   }
-  console.log()
-  return expanedFormula;
-}
+  return expandedFormula;
+} 
 
 function calcGcd(a, b) {
   return b ? calcGcd(b, a % b) : a;
@@ -70,11 +65,13 @@ function calcBernoulliNumFrac(n) {
 }
 
 function binomialCoeff(n, k) {
-  let coeff = 1;
-  for (let i = n - k + 1; i <= n; i++) {
+  n = BigInt(n);
+  k = BigInt(k);
+  let coeff = BigInt(1);
+  for (let i = n - k + BigInt(1); i <= n; i++) {
     coeff *= i;
   }
-  for (i = 1; i <= k; i++) {
+  for (i = BigInt(1); i <= k; i++) {
     coeff /= i;
   }
   return coeff;
@@ -101,15 +98,17 @@ function reduceFrac(frac) {
 //   for (let i = 0; i < n + 1; i++) {
 //     arr[i] = 1 / (i + 1);
 //     for (let j = i; j > 0; j--) {
-//       console.log(arr)
 //       arr[j-1] = j * (arr[j-1] - arr[j])
 //     }
 //   }
-//   console.log(arr)
 //   return arr[0];
 // }
 
-console.log(reduceFrac(calcBernoulliNumFrac(4)))
 console.log(equation(0))
 console.log(equation(1))
 console.log(equation(4))
+console.log(equation(5))
+console.log(equation(6) + "\n")
+console.log(equation(9) + "\n")
+console.log(equation(24) + "\n")
+console.log(equation(26))
