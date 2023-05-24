@@ -2,6 +2,10 @@
 
 // method using Faulhaber's formula https://www.wikiwand.com/en/Faulhaber%27s_formula
 
+// memoization for previously calculated Bernoulli numbers and GCD of pairs
+let BernoulliNums = new Map(),
+    gcdPairs = {};
+
 var equation = function (exp) {
   let coeff = [1, BigInt(exp + 1)], // 1 / (p + 1)
       expandedFormula = "",
@@ -46,6 +50,65 @@ var equation = function (exp) {
   return expandedFormula;
 } 
 
+// Binary GCD algorithm recursive https://www.wikiwand.com/en/Binary_GCD_algorithm
+function binaryGcd(n, m) {
+  if (!n || !m) return n + m;
+  if (!n&1 && !m&1) {
+    return binaryGcd(n >> 1, m >> 1) << 1;
+  }
+  else if (!n&1) {
+    return binaryGcd(n >> 1, m);
+  }
+  else if(!m&1) {
+    return binaryGcd(n, m << 1);
+  }
+  else {
+    return binaryGcd()
+  }
+}
+
+// Binary GCD algorithm iterative
+function binaryGcdIter(n, m) {
+  let abs = (n) => (n < 0n) ? (-1n)*n : n;
+  let min = (n, m) => (n <= m) ? n : m;
+
+  let commonFactorsTwo = 0n;
+  while (n && m) {
+    console.log(typeof(n))
+    console.log(typeof(m))
+    if (n&1n) {
+      if (m&1n) {
+        let tempN = n;
+        let tempM = m;
+        n = abs(tempN - tempM);
+        m = min(tempN, tempM);
+        // if (n >= m) {
+        //   n = n - m;
+        // }
+        // else {
+        //   m = m - n;
+        // }
+        console.log("n = " + n + " m = " + m)
+      }
+      else {
+        m = m >> 1n;
+      }
+    }
+    else if (m&1n) {
+      n = n >> 1n;
+    }
+    else {
+      commonFactorsTwo += 1n;
+      n = n >> 1n;
+      m = m >> 1n;
+    }
+  }
+
+  return (n || m) << commonFactorsTwo;
+}
+
+
+// Euclidian algorithm
 function calcGcd(a, b) {
   return b ? calcGcd(b, a % b) : a;
 }
@@ -81,6 +144,7 @@ function binomialCoeff(n, k) {
 function subFrac(fOne, fTwo) {
   let diff = [];
   let gcd = calcGcd(fOne[1], fTwo[1]);
+  console.log("gcd = " + gcd)
   // frac1 + (-)frac2
   diff.push((fOne[0] * fTwo[1] / gcd) + ((BigInt(-1)*fTwo[0]) * fOne[1] / gcd));
   diff.push(fOne[1] * fTwo[1] / gcd);
@@ -90,6 +154,7 @@ function subFrac(fOne, fTwo) {
 // reduce a fraction by dividing numerator and denominator by thier GCD
 function reduceFrac(frac) {
   let gcd = calcGcd(frac[0], frac[1]);
+  console.log("gcd = " + gcd)
   return [frac[0] / gcd, frac[1]/ gcd];
 }
 
@@ -107,8 +172,14 @@ function reduceFrac(frac) {
 console.log(equation(0))
 console.log(equation(1))
 console.log(equation(4))
-console.log(equation(5))
-console.log(equation(6) + "\n")
-console.log(equation(9) + "\n")
-console.log(equation(24) + "\n")
-console.log(equation(26))
+// console.log(equation(5))
+// console.log(equation(6) + "\n")
+// console.log(equation(9) + "\n")
+// console.log(equation(24) + "\n")
+// console.log(equation(26))
+for (let i = 0; i < 26+1; i++) {
+  console.log(binomialCoeff(BigInt(27), BigInt(i)))
+}
+
+// TODO make algorithm faster. Try saving previously calculated Bernoulli numbers in a Map,
+// TODO or previously calculated gcd pairs in a object / map
