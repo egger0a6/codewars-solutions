@@ -19,9 +19,16 @@ var equation = function (exp) {
       den;
   for (let k = 0; k < exp+1; k++) {
     currExpr = "";
-    bernNum = reduceFrac(calcBernoulliNumFrac(k));
+
+    if (BernoulliNums.has(k)) {
+      bernNum = BernoulliNums.get(k);
+    }
+    else {
+      bernNum = reduceFrac(calcBernoulliNumFrac(k));
+    }
     if (!bernNum[0]) continue;
-    binomCoeff = [BigInt(binomialCoeff(exp+1, k)), coeff[1]];
+
+    binomCoeff = [binomialCoeff(exp+1, k), coeff[1]];
     currCoeff = reduceFrac([binomCoeff[0] * bernNum[0], binomCoeff[1] * bernNum[1]]);
     num = currCoeff[0];
     den = currCoeff[1];
@@ -48,47 +55,20 @@ var equation = function (exp) {
     expandedFormula += currExpr;
   }
   return expandedFormula;
-} 
-
-// Binary GCD algorithm recursive https://www.wikiwand.com/en/Binary_GCD_algorithm
-function binaryGcd(n, m) {
-  if (!n || !m) return n + m;
-  if (!n&1 && !m&1) {
-    return binaryGcd(n >> 1, m >> 1) << 1;
-  }
-  else if (!n&1) {
-    return binaryGcd(n >> 1, m);
-  }
-  else if(!m&1) {
-    return binaryGcd(n, m << 1);
-  }
-  else {
-    return binaryGcd()
-  }
 }
 
-// Binary GCD algorithm iterative
+// Binary GCD algorithm iterative https://www.wikiwand.com/en/Binary_GCD_algorithm
 function binaryGcdIter(n, m) {
-  let abs = (n) => (n < 0n) ? (-1n)*n : n;
-  let min = (n, m) => (n <= m) ? n : m;
-
   let commonFactorsTwo = 0n;
   while (n && m) {
-    console.log(typeof(n))
-    console.log(typeof(m))
     if (n&1n) {
       if (m&1n) {
-        let tempN = n;
-        let tempM = m;
-        n = abs(tempN - tempM);
-        m = min(tempN, tempM);
-        // if (n >= m) {
-        //   n = n - m;
-        // }
-        // else {
-        //   m = m - n;
-        // }
-        console.log("n = " + n + " m = " + m)
+        if (n >= m) {
+          n = n - m;
+        }
+        else {
+          m = m - n;
+        }
       }
       else {
         m = m >> 1n;
@@ -107,14 +87,9 @@ function binaryGcdIter(n, m) {
   return (n || m) << commonFactorsTwo;
 }
 
-
-// Euclidian algorithm
-function calcGcd(a, b) {
-  return b ? calcGcd(b, a % b) : a;
-}
-
 function calcBernoulliNumFrac(n) {
   let arr = [];
+  let bernNum;
   for (let i = 0; i < n + 1; i++) {
     // index 0 = numerator, 1 = denominator
     arr[i] = [BigInt(1), BigInt(i + 1)];
@@ -124,27 +99,36 @@ function calcBernoulliNumFrac(n) {
       arr[j-1] = [BigInt(j) * diff[0], diff[1]];
     }
   }
-  return arr[0];
+  bernNum = reduceFrac(arr[0]);
+  BernoulliNums.set(n, bernNum);
+  return bernNum;
 }
 
 function binomialCoeff(n, k) {
   n = BigInt(n);
   k = BigInt(k);
-  let coeff = BigInt(1);
-  for (let i = n - k + BigInt(1); i <= n; i++) {
-    coeff *= i;
+  let coeff = 1n;
+
+  if (k > n - k) {
+    k = n - k;
   }
-  for (i = BigInt(1); i <= k; i++) {
-    coeff /= i;
+
+  for (let i = 0n; i < k; i++) {
+    coeff *= n - i;
+    coeff /= i + 1n;
   }
+
   return coeff;
 }
+
+// absolute value of n
+let abs = (n) => (n < 0n) ? (-1n)*n : n;
 
 // subtract two fractions
 function subFrac(fOne, fTwo) {
   let diff = [];
-  let gcd = calcGcd(fOne[1], fTwo[1]);
-  console.log("gcd = " + gcd)
+  let gcd = binaryGcdIter(abs(fOne[1]), abs(fTwo[1]));
+  if (fOne[1] < 0n || fTwo[1] < 0n) gcd *= -1n;
   // frac1 + (-)frac2
   diff.push((fOne[0] * fTwo[1] / gcd) + ((BigInt(-1)*fTwo[0]) * fOne[1] / gcd));
   diff.push(fOne[1] * fTwo[1] / gcd);
@@ -153,11 +137,33 @@ function subFrac(fOne, fTwo) {
 
 // reduce a fraction by dividing numerator and denominator by thier GCD
 function reduceFrac(frac) {
-  let gcd = calcGcd(frac[0], frac[1]);
-  console.log("gcd = " + gcd)
+  let gcd = binaryGcdIter(abs(frac[0]), abs(frac[1]));
+  if (frac[0] < 0n || frac[1] < 0n) gcd *= -1n;
   return [frac[0] / gcd, frac[1]/ gcd];
 }
 
+
+// deprecated
+// function binomialCoeff(n, k) {
+//   n = BigInt(n);
+//   k = BigInt(k);
+//   let coeff = BigInt(1);
+//   for (let i = n - k + BigInt(1); i <= n; i++) {
+//     coeff *= i;
+//   }
+//   for (i = BigInt(1); i <= k; i++) {
+//     coeff /= i;
+//   }
+//   return coeff;
+// }
+
+// deprecated - too slow
+// Euclidian algorithm
+// function calcGcd(a, b) {
+//   return b ? calcGcd(b, a % b) : a;
+// }
+
+// deprecated
 // function calcBernoulliNum(n) {
 //   let arr = [];
 //   for (let i = 0; i < n + 1; i++) {
@@ -169,17 +175,35 @@ function reduceFrac(frac) {
 //   return arr[0];
 // }
 
+// deprecated
+// Binary GCD algorithm recursive 
+// function binaryGcd(n, m) {
+//   if (!n || !m) return n + m;
+//   if (!n&1 && !m&1) {
+//     return binaryGcd(n >> 1, m >> 1) << 1;
+//   }
+//   else if (!n&1) {
+//     return binaryGcd(n >> 1, m);
+//   }
+//   else if(!m&1) {
+//     return binaryGcd(n, m << 1);
+//   }
+//   else {
+//     return binaryGcd()
+//   }
+// }
+
 console.log(equation(0))
 console.log(equation(1))
+console.log(equation(2))
 console.log(equation(4))
-// console.log(equation(5))
-// console.log(equation(6) + "\n")
-// console.log(equation(9) + "\n")
-// console.log(equation(24) + "\n")
-// console.log(equation(26))
-for (let i = 0; i < 26+1; i++) {
-  console.log(binomialCoeff(BigInt(27), BigInt(i)))
-}
+console.log(equation(5))
+console.log(equation(6) + "\n")
+console.log(equation(7) + "\n")
+console.log(equation(9) + "\n")
+console.log(equation(24) + "\n")
+console.log(equation(26))
+// console.log(equation(140))
 
 // TODO make algorithm faster. Try saving previously calculated Bernoulli numbers in a Map,
 // TODO or previously calculated gcd pairs in a object / map
