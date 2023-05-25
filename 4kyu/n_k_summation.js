@@ -2,9 +2,8 @@
 
 // method using Faulhaber's formula https://www.wikiwand.com/en/Faulhaber%27s_formula
 
-// memoization for previously calculated Bernoulli numbers and GCD of pairs
-let BernoulliNums = new Map(),
-    gcdPairs = {};
+// memoization for previously calculated Bernoulli numbers
+let BernoulliNums = new Map();
 
 var equation = function (exp) {
   let coeff = [1, BigInt(exp + 1)], // 1 / (p + 1)
@@ -193,17 +192,14 @@ function reduceFrac(frac) {
 //   }
 // }
 
-console.log(equation(0))
-console.log(equation(1))
-console.log(equation(2))
-console.log(equation(4))
-console.log(equation(5))
-console.log(equation(6) + "\n")
-console.log(equation(7) + "\n")
-console.log(equation(9) + "\n")
-console.log(equation(24) + "\n")
-console.log(equation(26))
+// console.log(equation(0))
+// console.log(equation(1))
+// console.log(equation(2))
+// console.log(equation(4))
+// console.log(equation(5))
+// console.log(equation(6) + "\n")
+// console.log(equation(7) + "\n")
+// console.log(equation(9) + "\n")
+// console.log(equation(24) + "\n")
+// console.log(equation(26))
 // console.log(equation(140))
-
-// TODO make algorithm faster. Try saving previously calculated Bernoulli numbers in a Map,
-// TODO or previously calculated gcd pairs in a object / map
