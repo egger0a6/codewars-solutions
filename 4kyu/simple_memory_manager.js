@@ -13,7 +13,6 @@ class MemoryManager {
           next: null,
           data: null,
         }
-        console.log(this.memory)
       }
   /**
    * Allocates a block of memory of requested size.
@@ -30,7 +29,7 @@ class MemoryManager {
           while (i < this.memory.length) {
             let currBlock = this.memory[i];
             if (currBlock.free) {
-              if (currBlock.size < size) {
+              if (size < currBlock.size) {
                 let newBlock = {
                   size: size,
                   free: false,
@@ -45,7 +44,7 @@ class MemoryManager {
                 this.free -= size;
                 return i;
               }
-              else if (currBlock.size === size) {
+              else if (size === currBlock.size) {
                 currBlock.free = false;
                 this.free -= size;
                 return i;
@@ -126,9 +125,3 @@ class MemoryManager {
         }
       }
   }
-
-
-  const mem = new MemoryManager(new Array(256));
-
-  mem.allocate(128);
-  console.log(mem.memory)
