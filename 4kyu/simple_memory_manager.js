@@ -35,7 +35,7 @@ class MemoryManager {
                   free: false,
                   prev: currBlock.prev,
                   next: i + size,
-                  data: null,
+                  data: new Array(size),
                 }
                 this.memory[i] = newBlock;
                 currBlock.size -= size;
@@ -46,6 +46,7 @@ class MemoryManager {
               }
               else if (size === currBlock.size) {
                 currBlock.free = false;
+                currBlock.data = new Array(currBlock.size);
                 this.free -= size;
                 return i;
               }
@@ -71,19 +72,22 @@ class MemoryManager {
         if (this.memory[pointer] && !this.memory[pointer].free) {
           let freeBlock = this.memory[pointer];
           freeBlock.free = true;
+          freeBlock.data = null;
           this.free += freeBlock.size;
           if (freeBlock.next && this.memory[freeBlock.next].free) {
             let next = freeBlock.next;
             freeBlock.size += this.memory[next].size;
             freeBlock.next = this.memory[next].next;
-            this.free += this.memory[next].size;
             this.memory[next] = null;
           }
-          if (freeBlock.prev && this.memory[freeBlock.prev.free]) {
+          if (freeBlock.prev && this.memory[freeBlock.prev].free) {
             let prev = freeBlock.prev;
+            if (this.memory[freeBlock.next]) {
+              this.memory[freeBlock.next].prev = prev;
+            }
             this.memory[prev].size += freeBlock.size;
             this.memory[prev].next = freeBlock.next;
-            this.free += this.memory[prev].size;
+            //this.memory[prev].data = null;
             this.memory[pointer] = null;
           }
         }
@@ -98,9 +102,15 @@ class MemoryManager {
    * @throws If pointer is in unallocated memory.
    */
       read(pointer) {
-        if (this.memory[pointer] && !this.memory[pointer].free) {
-          if (this.memory[pointer]) {
-            return this.memory[pointer].data;
+        let i = pointer;
+        let ptr = 0;
+        while(!this.memory[i]) {
+          i--;
+          ptr++;
+        }
+        if (!this.memory[i].free) {
+          if (this.memory[i].data[ptr]) {
+            return this.memory[i].data[ptr];
           }
           else {
             return undefined;
@@ -117,11 +127,84 @@ class MemoryManager {
    * @throws If pointer is in unallocated memory.
    */
       write(pointer, value) {
-        if (this.memory[pointer] && !this.memory[pointer].free) {
-          this.memory[pointer].data = value;
+        let i = pointer;
+        let ptr = 0;
+        while (!this.memory[i]) {
+          i--;
+          ptr++;
+        }
+        if (!this.memory[i].free) {
+          this.memory[i].data[ptr] = value;
         }
         else {
           throw new Error(`no memory has been allocated`);
         }
       }
   }
+
+
+// Tests =======================================================================
+// Allocate is constrained by memory size
+let mem = new MemoryManager(new Array(256));
+// mem.allocate(512);
+mem.allocate(128);
+//mem.allocate(129);
+console.log(mem.memory)
+
+// Allocate does not have a memory overhead
+mem = new MemoryManager(new Array(256));
+for (let i = 0; i < 256; i++) {
+  mem.allocate(1);
+}
+console.log(mem)
+
+// Released memory may be re-allocated
+mem = new MemoryManager(new Array(64));
+let pointer1 = mem.allocate(32);
+let pointer2 = mem.allocate(32);
+mem.release(pointer1);
+mem.allocate(32)
+console.log(mem)
+
+// Released memory is merged when free blocks are adjacent
+mem = new MemoryManager(new Array(64));
+pointer1 = mem.allocate(16);
+pointer2 = mem.allocate(16);
+let pointer3 = mem.allocate(16);
+let pointer4 = mem.allocate(16);
+mem.release(pointer3);
+mem.release(pointer2);
+mem.allocate(32);
+console.log(mem)
+
+// May not write to unallocated blocks
+mem = new MemoryManager(new Array(64));
+//mem.write(1, 1);
+
+// May write to allocated blocks
+let array = new Array(64),
+a = 0,
+b = 1,
+c = 31,
+d = 32;
+mem = new MemoryManager(array);
+pointer1 = mem.allocate(32);
+mem.write(pointer1, a);
+// TODO make data property an array of size of the block so indeces within that
+// TODO block can be written to
+mem.write(pointer1 + b, b);
+mem.write(pointer1 + c, c);
+//mem.write(pointer1 + d);
+console.log(mem)
+console.log(mem.memory[0].data)
+
+// May not read from unallocated blocks
+mem = new MemoryManager(new Array(64));
+//mem.read(1);
+
+// May read from allocated blocks
+mem = new MemoryManager(new Array(64));
+pointer1 = mem.allocate(32);
+mem.write(pointer1, 1)
+console.log(mem.read(pointer1));
+console.log(mem.read(pointer1 + 1));
