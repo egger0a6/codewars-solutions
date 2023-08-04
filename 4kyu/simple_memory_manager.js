@@ -71,6 +71,9 @@ class MemoryManager {
           let freeBlock = this.blocks[pointer];
           freeBlock.free = true;
           this.free += freeBlock.size;
+          for (let i = pointer; i < pointer + freeBlock.size; i++) {
+            this.memory[i] = null;
+          }
           if (freeBlock.next && this.blocks[freeBlock.next].free) {
             let next = freeBlock.next;
             freeBlock.size += this.blocks[next].size;
@@ -99,14 +102,12 @@ class MemoryManager {
    */
       read(pointer) {
         let i = pointer;
-        let ptr = 0;
         while(!this.blocks[i]) {
           i--;
-          ptr++;
         }
         if (!this.blocks[i].free) {
-          if (this.blocks[i].data[ptr]) {
-            return this.blocks[i].data[ptr];
+          if (this.memory[pointer]) {
+            return this.memory[pointer];
           }
           else {
             return undefined;
@@ -127,10 +128,8 @@ class MemoryManager {
         while (!this.blocks[i]) {
           i--;
         }
-        if (!this.blocks[i].free && this.blocks[i].next) {
-          if (pointer < this.blocks[i].next) {
-            this.memory[pointer] = value;
-          }
+        if (!this.blocks[i].free) {
+          this.memory[pointer] = value;
         }
         else {
           throw new Error(`no memory has been allocated`);
