@@ -1,3 +1,5 @@
+// Solution for 4kyu Kata https://www.codewars.com/kata/536e7c7fd38523be14000ca2
+
 class MemoryManager {
   /**
    * @constructor Creates a new memory manager for the provided array.

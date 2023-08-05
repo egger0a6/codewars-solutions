@@ -1,3 +1,5 @@
+// Solution for 4kyu Kata https://www.codewars.com/kata/53c8bcb1689f84238c000661
+
 function ArrayComprehension({generator = "", filters = [], transform = ""}) {
   if (!generator) return [];
   let regex = /(-?\d+)\.\.(-?\d+)|(-?\d+),(-?\d+)\.\.(-?\d+)/;

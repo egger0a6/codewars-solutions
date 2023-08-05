@@ -1,3 +1,5 @@
+// Solution for 5kyu Kata https://www.codewars.com/kata/53c8b29750fe70e4a2000610
+
 function ArrayComprehension({generator = ""}) {
   if (!generator) return [];
   let regex = /(-?\d+)\.\.(-?\d+)|(-?\d+),(-?\d+)\.\.(-?\d+)/;
