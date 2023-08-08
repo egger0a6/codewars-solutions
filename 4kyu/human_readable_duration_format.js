@@ -15,8 +15,6 @@ function formatDuration (seconds) {
   }
   times.push(remaining);
   if (times[i] > 1) format[i] += "s";
-  console.log(times)
-  console.log(format)
 
   return times.map((time, idx) => {
     if (time) {
@@ -25,9 +23,6 @@ function formatDuration (seconds) {
   })
   .filter(time => time)
   .reduce((prev, curr, idx, arr) => {
-    // console.log(arr)
-    // console.log(idx)
-    // console.log(curr)
     if (idx > 0 && idx === arr.length - 1) {
       return prev + ` and ${curr}`;
     }
