@@ -39,6 +39,7 @@ function mix(s1, s2) {
     }
     return el;
   });
+  
   for (let i = 0; i < s1Count.length; i++) {
     s1Chars = s1Count[i];
     s2Chars = s2Count[i];
