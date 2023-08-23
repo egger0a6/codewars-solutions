@@ -13,8 +13,10 @@ function setup(grid, turrets) {
   const N = grid.length;
   grid = grid.reduce((prev, curr) => prev + curr, "");
   let start = grid.indexOf("0");
+
   // find grid path and store in global array PATH
   getPath(grid, start, N);
+
   // find indeces of all turrets
   for (let i = 0; i < grid.length; i++) {
     let currChar = grid.at(i);
@@ -23,12 +25,87 @@ function setup(grid, turrets) {
       getTurretTargets(currChar, turrets, N);
     }
   }
+
+  // calculate total shots of all turrets
+  let totalShots = Object.keys(turrets).reduce((prev, curr) => {
+    return prev + turrets[curr].totShots;
+  }, 0);
+
   console.log(PATH)
   console.log(turrets)
+  return mainLoop(turrets, aliens, totalShots);
 }
 
 function mainLoop(turrets, aliens) {
+  let state = new Array(PATH.length).fill(0), totAliens = aliens.length;
+  let totHealthPoints = 0, move = 0, validShots;
 
+  state[0] = aliens[0];
+  while (true) {
+    console.log(state)
+    for(let i = state.length - 1; i >= 0; i--) {
+      if (state[i]) {
+        validTurrets = [];
+
+        // determine turrets that are able to shoot current alien and total
+        // available shots that said turret has in the current move.
+        validShots = Object.keys(turrets).reduce((prev, curr) => {
+          if (turrets[curr].shotRange.includes(PATH[i])) {
+            validTurrets.push(curr);
+            return prev + turrets[curr].remShots;
+          }
+          return prev + 0;
+        },0);
+
+        while (true) {
+          for (turret of validTurrets) {
+            if (turrets[turret].remShots) {
+              if (state[i]) {
+                state[i] -= 1;
+                turrets[turret].remShots--;
+                validShots--;
+              }
+              else {
+                totAliens--;
+                break;
+              }
+              console.log(state[i])
+            }
+          }
+          if (!state[i]) {
+            break;
+          }
+          if (!validShots) {
+            break;
+          }
+        }
+      }
+    }
+
+    // reset turret shots
+    for (turret in turrets) {
+      turrets[turret].remShots = turrets[turret].totShots;
+    }
+    move++;
+
+    // update state
+    totHealthPoints += state.pop();
+    if (move < aliens.length) {
+      state.unshift(aliens[move]);
+    }
+    else {
+      state.unshift(0);
+    }
+
+    // while loop exit conditions
+    if (totAliens === 0) {
+      break;
+    }
+    if (state.reduce((prev, curr) => prev + curr, 0) === 0) {
+      break;
+    }
+  }
+  console.log(totHealthPoints)
 }
 
 // get indexes of path. grid is now a single string reduced from the original
@@ -59,7 +136,8 @@ function getPath(grid, start, N) {
   // PATH.sort((a, b) => a - b);
 }
 
-// calculate the path indices that are in range of the turret param, t
+// calculate the path indices that are in range of the turret, t.
+// uses Manhattan Distance
 function getTurretTargets(t, turrets, N) {
   let tPos = turrets[t][2], tRange = turrets[t][0];
   let tRow = Math.floor(tPos / N), tCol = tPos % N, pRow, pCol, distance;
@@ -72,5 +150,9 @@ function getTurretTargets(t, turrets, N) {
       tTargets.push(pos)
     }
   }
-  turrets[t] = [turrets[t], tTargets.reverse()];
+  turrets[t] = {
+    totShots: turrets[t][1],
+    remShots: turrets[t][1],
+    shotRange: tTargets.reverse(),
+  }
 }
