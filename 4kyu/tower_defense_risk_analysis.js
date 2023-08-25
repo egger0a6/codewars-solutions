@@ -39,50 +39,49 @@ function setup(grid, turrets) {
 
 function mainLoop(turrets, aliens) {
   let state = new Array(PATH.length).fill(0), totAliens = aliens.length;
-  let totHealthPoints = 0, move = 0, validShots;
+  let totHealthPoints = 0, move = 0, validShots, totalShots = 0;
 
+  // calculate total shots available per turn
+  for (const turret in turrets) {
+    totalShots += turrets[turret].totShots;
+  }
+
+  // one iteration of outer while loop constitutes one move
   state[0] = aliens.shift();
   while (true) {
     console.log()
-    printState(state);
-    console.log(move)
-    for(let i = state.length - 1; i >= 0; i--) {
-      if (state[i]) {
-        validTurrets = [];
+    printState(state)
+    while (true) {
+      let totShotsFired = 0;
 
-        // determine turrets that are able to shoot current alien and total
-        // available shots that said turrets have in the current move.
-        validShots = Object.keys(turrets).reduce((prev, curr) => {
-          if (turrets[curr].shotRange.includes(PATH[i])) {
-            validTurrets.push(curr);
-            return prev + turrets[curr].remShots;
-          }
-          return prev + 0;
-        },0);
+      // during a move, loop through all turrets
+      let currShotsFired = 0;
+      for (const turret in turrets) {
+        if (!turrets[turret].remShots) {
+          continue;
+        }
+        // search all path locations within the current turret's range
+        for (const pathIdx of turrets[turret].shotRange) {
+          let currPathLoc = PATH.indexOf(pathIdx);
+          if (state[currPathLoc]) {
+            console.log(`turret: ${turret}, shots remaining: ${turrets[turret].remShots}`)
+            turrets[turret].remShots--;
+            state[currPathLoc] -= 1;
+            totShotsFired++;
+            currShotsFired++;
+            console.log("currShotsFired: " + currShotsFired)
 
-        while (true) {
-          for (const turret of validTurrets) {
-            if (turrets[turret].remShots) {
-              // console.log(turret)
-              // console.log(state[i])
-              if (state[i]) {
-                state[i] -= 1;
-                turrets[turret].remShots--;
-                validShots--;
-              }
-              else {
-                totAliens--;
-                break;
-              }
+            if (!state[currPathLoc]) {
+              totAliens--;
             }
-          }
-          if (!state[i]) {
-            break;
-          }
-          if (!validShots) {
             break;
           }
         }
+      }
+      // break if all available shots have been fired, or if no aliens are in
+      // range of any turrets.
+      if (totShotsFired === totalShots || currShotsFired === 0) {
+        break;
       }
     }
 
@@ -109,6 +108,73 @@ function mainLoop(turrets, aliens) {
       break;
     }
   }
+
+  // state[0] = aliens.shift();
+  // while (true) {
+  //   console.log()
+  //   printState(state);
+  //   console.log(move)
+  //   for(let i = state.length - 1; i >= 0; i--) {
+  //     if (state[i]) {
+  //       // determine turrets that are able to shoot current alien and total
+  //       // available shots that said turrets have in the current move.
+  //       validTurrets = [];
+  //       validShots = Object.keys(turrets).reduce((prev, curr) => {
+  //         if (turrets[curr].shotRange.includes(PATH[i]) && turrets[curr].remShots) {
+  //           validTurrets.push(curr);
+  //           return prev + turrets[curr].remShots;
+  //         }
+  //         return prev + 0;
+  //       },0);
+  //       while (true) {
+  //         if (!validShots) {
+  //           break;
+  //         }
+  //         for (const turret of validTurrets) {
+  //           if (turrets[turret].remShots) {
+  //             // console.log(turret)
+  //             // console.log(state[i])
+  //             if (state[i]) {
+  //               state[i] -= 1;
+  //               turrets[turret].remShots--;
+  //               validShots--;
+  //             }
+  //             else {
+  //               totAliens--;
+  //               break;
+  //             }
+  //           }
+  //         }
+  //         if (!state[i]) {
+  //           break;
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   // reset turret shots
+  //   for (turret in turrets) {
+  //     turrets[turret].remShots = turrets[turret].totShots;
+  //   }
+  //   move++;
+
+  //   // update state
+  //   totHealthPoints += state.pop();
+  //   if (aliens.length) {
+  //     state.unshift(aliens.shift());
+  //   }
+  //   else {
+  //     state.unshift(0);
+  //   }
+
+  //   // while loop exit conditions
+  //   if (totAliens === 0) {
+  //     break;
+  //   }
+  //   if (state.reduce((prev, curr) => prev + curr, 0) === 0 && !aliens.length) {
+  //     break;
+  //   }
+  // }
   return totHealthPoints;
 }
 
@@ -145,16 +211,17 @@ function getTurretTargets(t, turrets, N) {
   let tPos = turrets[t][2], tRange = turrets[t][0];
   let tRow = Math.floor(tPos / N), tCol = tPos % N, pRow, pCol, distance;
   let tTargets = [];
+
   for (const pos of PATH) {
     pRow = Math.floor(pos / N);
     pCol = pos % N;
     distance = Math.sqrt(Math.pow(pRow - tRow, 2)  + Math.pow(pCol - tCol, 2));
-    console.log(distance)
     //distance = Math.abs(pRow - tRow) + Math.abs(pCol - tCol);
     if (distance <= tRange) {
       tTargets.push(pos)
     }
   }
+
   turrets[t] = {
     totShots: turrets[t][1],
     remShots: turrets[t][1],
