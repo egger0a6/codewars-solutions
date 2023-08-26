@@ -1,26 +1,18 @@
 // Solution to 4kyu Kata "Tower Defense: Risk Analysis" https://www.codewars.com/kata/5a57faad880385f3b60000d0/train/javascript
 
 
-let globalN;
-let globalLen;
-let turrPositions = {};
 let PATH = [];
 
 function towerDefense(grid,turrets,aliens){
   PATH = [];
 	setup(grid, turrets);
-  console.log(PATH);
-  console.log(turrets);
   return mainLoop(turrets, aliens);
 }
 
-
 // first pass through the grid to setup data structures
 function setup(grid, turrets) {
-  globalN = grid.length;
   const N = grid.length;
   grid = grid.reduce((prev, curr) => prev + curr, "");
-  globalLen = grid.length;
   let start = grid.indexOf("0");
 
   // find grid path and store in global array PATH
@@ -30,7 +22,6 @@ function setup(grid, turrets) {
   for (let i = 0; i < grid.length; i++) {
     let currChar = grid.at(i);
     if (/[A-Z]/.test(currChar)) {
-      turrPositions[currChar] = i;
       turrets[currChar].push(i);
       getTurretTargets(currChar, turrets, N);
     }
@@ -39,7 +30,7 @@ function setup(grid, turrets) {
 
 function mainLoop(turrets, aliens) {
   let state = new Array(PATH.length).fill(0), totAliens = aliens.length;
-  let totHealthPoints = 0, move = 0, validShots, totalShots = 0;
+  let totHealthPoints = 0, totalShots = 0;
 
   // calculate total shots available per turn
   for (const turret in turrets) {
@@ -49,8 +40,6 @@ function mainLoop(turrets, aliens) {
   // one iteration of outer while loop constitutes one move
   state[0] = aliens.shift();
   while (true) {
-    console.log()
-    printState(state)
     while (true) {
       let totShotsFired = 0;
 
@@ -64,12 +53,10 @@ function mainLoop(turrets, aliens) {
         for (const pathIdx of turrets[turret].shotRange) {
           let currPathLoc = PATH.indexOf(pathIdx);
           if (state[currPathLoc]) {
-            console.log(`turret: ${turret}, shots remaining: ${turrets[turret].remShots}`)
             turrets[turret].remShots--;
             state[currPathLoc] -= 1;
             totShotsFired++;
             currShotsFired++;
-            console.log("currShotsFired: " + currShotsFired)
 
             if (!state[currPathLoc]) {
               totAliens--;
@@ -89,7 +76,6 @@ function mainLoop(turrets, aliens) {
     for (turret in turrets) {
       turrets[turret].remShots = turrets[turret].totShots;
     }
-    move++;
 
     // update state
     totHealthPoints += state.pop();
@@ -109,72 +95,6 @@ function mainLoop(turrets, aliens) {
     }
   }
 
-  // state[0] = aliens.shift();
-  // while (true) {
-  //   console.log()
-  //   printState(state);
-  //   console.log(move)
-  //   for(let i = state.length - 1; i >= 0; i--) {
-  //     if (state[i]) {
-  //       // determine turrets that are able to shoot current alien and total
-  //       // available shots that said turrets have in the current move.
-  //       validTurrets = [];
-  //       validShots = Object.keys(turrets).reduce((prev, curr) => {
-  //         if (turrets[curr].shotRange.includes(PATH[i]) && turrets[curr].remShots) {
-  //           validTurrets.push(curr);
-  //           return prev + turrets[curr].remShots;
-  //         }
-  //         return prev + 0;
-  //       },0);
-  //       while (true) {
-  //         if (!validShots) {
-  //           break;
-  //         }
-  //         for (const turret of validTurrets) {
-  //           if (turrets[turret].remShots) {
-  //             // console.log(turret)
-  //             // console.log(state[i])
-  //             if (state[i]) {
-  //               state[i] -= 1;
-  //               turrets[turret].remShots--;
-  //               validShots--;
-  //             }
-  //             else {
-  //               totAliens--;
-  //               break;
-  //             }
-  //           }
-  //         }
-  //         if (!state[i]) {
-  //           break;
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   // reset turret shots
-  //   for (turret in turrets) {
-  //     turrets[turret].remShots = turrets[turret].totShots;
-  //   }
-  //   move++;
-
-  //   // update state
-  //   totHealthPoints += state.pop();
-  //   if (aliens.length) {
-  //     state.unshift(aliens.shift());
-  //   }
-  //   else {
-  //     state.unshift(0);
-  //   }
-
-  //   // while loop exit conditions
-  //   if (totAliens === 0) {
-  //     break;
-  //   }
-  //   if (state.reduce((prev, curr) => prev + curr, 0) === 0 && !aliens.length) {
-  //     break;
-  //   }
-  // }
   return totHealthPoints;
 }
 
@@ -216,7 +136,6 @@ function getTurretTargets(t, turrets, N) {
     pRow = Math.floor(pos / N);
     pCol = pos % N;
     distance = Math.sqrt(Math.pow(pRow - tRow, 2)  + Math.pow(pCol - tCol, 2));
-    //distance = Math.abs(pRow - tRow) + Math.abs(pCol - tCol);
     if (distance <= tRange) {
       tTargets.push(pos)
     }
@@ -226,37 +145,5 @@ function getTurretTargets(t, turrets, N) {
     totShots: turrets[t][1],
     remShots: turrets[t][1],
     shotRange: tTargets.reverse(),
-  }
-}
-
-// prints state for debugging
-function printState(state) {
-  let turrLocations = Object.keys(turrPositions).reduce((prev, curr) => {
-    return [...prev, turrPositions[curr]]
-  }, []);
-  let currRow = "";
-
-  for (let i = 0; i < globalLen; i += globalN) {
-    for (let j = i; j < i + globalN; j++) {
-      if (turrLocations.includes(j)) {
-        for (turr in turrPositions) {
-          if (turrPositions[turr] === j) {
-            currRow += " " + turr + " ";
-          }
-        }
-      }
-      else if (PATH.includes(j) && !state[PATH.indexOf(j)]) {
-        currRow += " " + 0 + " ";
-      }
-      else if(PATH.includes(j) && state[PATH.indexOf(j)]) {
-        let alien = state[PATH.indexOf(j)];
-        currRow += (alien > 9) ? alien + " " : " " + alien + " ";
-      }
-      else {
-        currRow += " - ";
-      }
-    }
-    console.log(currRow);
-    currRow = "";
   }
 }
