@@ -1,4 +1,4 @@
-// Solution for 6kyu Kata "Christmas Present Calculator" https://www.codewars.com/kata/585355fb0877c420a2000009
+// Solution for 6kyu Kata "Christmas mission: Programmer's Christmas #3" https://www.codewars.com/kata/585355fb0877c420a2000009
 
 function merryChristmas(s) {
   s = s.replace(/[^a-zA-Z]|\s/g, "");
