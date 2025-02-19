@@ -1,4 +1,4 @@
-// Solution for 6kyu Kata "🎄 Tree-mendous Review: Christmas Tree Design Test https://www.codewars.com/kata/6755c1a3d344978ab24c7e99
+// Solution for 6kyu Kata "🎄 Tree-mendous Review: Christmas Tree Design Test" https://www.codewars.com/kata/6755c1a3d344978ab24c7e99
 
 function review(height, ornaments, tree) {
   let points = 10;
